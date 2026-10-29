@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="小贤门窗">
+<meta name="theme-color" content="#1e2a38">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<title>小贤门窗</title>
+<link rel="stylesheet" href="css/style.css?v=3">
+</head>
+<body>
+
+<!-- 顶部栏 -->
+<header class="topbar">
+  <div class="topbar-title">🪟 小贤门窗</div>
+  <div style="display:flex;gap:8px">
+    <button class="icon-btn" id="btn-phone" title="手机打开">📱</button>
+    <button class="icon-btn" id="btn-settings" title="价格设置">⚙️</button>
+  </div>
+</header>
+
+<!-- 款式选择条：左侧固定"自建"入口 + 右侧可滑动款式列表 -->
+<div class="style-bar">
+  <button class="designer-entry" id="btn-designer">✏️ 自建</button>
+  <div class="style-strip" id="style-strip"></div>
+</div>
+
+<!-- 主舞台 -->
+<main class="stage" id="stage">
+  <div class="view3d" id="view3d"></div>
+  <canvas class="view2d" id="view2d" hidden></canvas>
+
+  <!-- 舞台悬浮按钮 -->
+  <div class="stage-actions">
+    <button class="fab small" id="btn-scene" title="切换场景">🏠</button>
+    <button class="fab small" id="btn-reset-view" title="重置视角">🔄</button>
+    <button class="fab primary" id="btn-export" title="导出效果图">📷 导出</button>
+  </div>
+  <div class="scene-label" id="scene-label">室内场景</div>
+  <div class="dims-info" id="dims-info"></div>
+</main>
+
+<!-- 底部导航 -->
+<nav class="tabbar">
+  <button class="tab active" data-tab="3d">🎨 效果图</button>
+  <button class="tab" data-tab="2d">📐 图纸</button>
+  <button class="tab" data-tab="params">⚙️ 参数</button>
+  <button class="tab" data-tab="quote">💰 报价</button>
+</nav>
+
+<!-- 参数面板（底部抽屉） -->
+<div class="sheet" id="params-sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-header">
+    <h2>门窗参数</h2>
+    <button class="icon-btn" id="btn-close-params">✕</button>
+  </div>
+  <div class="sheet-body">
+
+    <section class="param-section">
+      <h3>尺寸 <span class="area-badge" id="area-badge"></span></h3>
+      <div class="slider-row">
+        <label>宽度 <span id="width-val" class="val">1500</span> mm</label>
+        <input type="range" id="param-width" min="400" max="4000" step="50" value="1500">
+      </div>
+      <div class="slider-row">
+        <label>高度 <span id="height-val" class="val">1500</span> mm</label>
+        <input type="range" id="param-height" min="400" max="3000" step="50" value="1500">
+      </div>
+    </section>
+
+    <section class="param-section">
+      <h3>型材系列</h3>
+      <div class="chip-row" id="series-chips"></div>
+    </section>
+
+    <section class="param-section">
+      <h3>颜色</h3>
+      <div class="swatch-row" id="color-swatches"></div>
+      <div class="custom-color-row">
+        <label>自定义颜色</label>
+        <input type="color" id="custom-color" value="#f2f2ee">
+      </div>
+    </section>
+
+    <section class="param-section">
+      <h3>玻璃</h3>
+      <div class="chip-row" id="glass-chips"></div>
+    </section>
+
+    <section class="param-section">
+      <h3>开启方式</h3>
+      <div class="slider-row">
+        <label>开启角度 <span id="angle-val" class="val">0</span>°</label>
+        <input type="range" id="param-angle" min="0" max="90" step="5" value="0">
+      </div>
+      <div class="toggle-row">
+        <span>配纱窗</span>
+        <label class="switch">
+          <input type="checkbox" id="param-screen">
+          <span class="slider"></span>
+        </label>
+      </div>
+    </section>
+
+    <section class="param-section">
+      <h3>场景</h3>
+      <div class="chip-row" id="scene-chips"></div>
+    </section>
+
+  </div>
+</div>
+
+<!-- 报价面板 -->
+<div class="sheet" id="quote-sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-header">
+    <h2>报价单</h2>
+    <button class="icon-btn" id="btn-close-quote">✕</button>
+  </div>
+  <div class="sheet-body">
+    <div class="quote-inputs">
+      <div class="input-row"><label>客户姓名</label><input type="text" id="q-customer" placeholder="选填"></div>
+      <div class="input-row"><label>项目地址</label><input type="text" id="q-address" placeholder="选填"></div>
+    </div>
+    <table class="quote-table" id="quote-table">
+      <thead><tr><th>项目</th><th class="num">数量</th><th class="num">单价</th><th class="num">小计</th></tr></thead>
+      <tbody></tbody>
+      <tfoot><tr class="total"><td colspan="3">合计</td><td class="num" id="quote-total">¥0</td></tr></tfoot>
+    </table>
+    <div class="quote-note">
+      本报价依据当前款式与尺寸自动计算，单价可在「⚙️ 设置」中修改。
+    </div>
+    <div class="quote-btns">
+      <button class="btn" id="btn-copy-quote">📋 复制文本</button>
+      <button class="btn" id="btn-export-quote">🖼️ 导出图片</button>
+      <button class="btn" id="btn-print-quote">🖨️ 打印</button>
+    </div>
+  </div>
+</div>
+
+<!-- 自建设计面板 -->
+<div class="sheet" id="designer-sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-header">
+    <h2>✏️ 自建设计</h2>
+    <button class="icon-btn" id="btn-close-designer">✕</button>
+  </div>
+  <div class="sheet-body">
+
+    <section class="param-section">
+      <h3>基础</h3>
+      <div class="input-row" style="margin-bottom:10px"><label>款式名称</label><input type="text" id="d-name" placeholder="例如：我的百叶窗"></div>
+      <div class="chip-row" id="d-cat-chips"></div>
+      <div class="slider-row" style="margin-top:12px">
+        <label>宽度 <span id="d-width-val" class="val">1500</span> mm</label>
+        <input type="range" id="d-width" min="400" max="4000" step="50" value="1500">
+      </div>
+      <div class="slider-row">
+        <label>高度 <span id="d-height-val" class="val">1500</span> mm</label>
+        <input type="range" id="d-height" min="400" max="3000" step="50" value="1500">
+      </div>
+      <div class="slider-row">
+        <label>型材厚度 <span id="d-thick-val" class="val">60</span> mm</label>
+        <input type="range" id="d-thick" min="40" max="100" step="5" value="60">
+      </div>
+      <div class="toggle-row">
+        <span>配纱窗</span>
+        <label class="switch"><input type="checkbox" id="d-screen"><span class="slider"></span></label>
+      </div>
+    </section>
+
+    <section class="param-section">
+      <h3>分格</h3>
+      <div class="stepper-row">
+        <span>横梃（行）</span>
+        <div class="stepper">
+          <button class="stepper-btn" data-step="rows" data-dir="-1">−</button>
+          <span class="stepper-val" id="d-rows-val">1</span>
+          <button class="stepper-btn" data-step="rows" data-dir="1">＋</button>
+        </div>
+        <span>中梃（列）</span>
+        <div class="stepper">
+          <button class="stepper-btn" data-step="cols" data-dir="-1">−</button>
+          <span class="stepper-val" id="d-cols-val">2</span>
+          <button class="stepper-btn" data-step="cols" data-dir="1">＋</button>
+        </div>
+      </div>
+      <div class="designer-grid" id="designer-grid"></div>
+      <p class="settings-tip">点上方格子 → 选择零件（开启方式/百叶/格栅…）并调参数</p>
+    </section>
+
+    <section class="param-section" id="d-part-section" hidden>
+      <h3 id="d-part-title">编辑格子</h3>
+      <div class="chip-row" id="d-part-chips"></div>
+      <div id="d-param-controls"></div>
+      <button class="btn primary" id="d-part-done" style="margin-top:10px">✅ 完成该格</button>
+    </section>
+
+    <section class="param-section">
+      <h3>我的款式</h3>
+      <div id="d-mylist"><p class="settings-tip">还没有保存的款式</p></div>
+    </section>
+
+    <div class="quote-btns">
+      <button class="btn" id="d-cancel">取消</button>
+      <button class="btn primary" id="d-save">💾 保存款式</button>
+    </div>
+  </div>
+</div>
+
+<!-- 价格设置面板 -->
+<div class="sheet" id="settings-sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-header">
+    <h2>价格设置</h2>
+    <button class="icon-btn" id="btn-close-settings">✕</button>
+  </div>
+  <div class="sheet-body">
+    <p class="settings-tip">修改后自动保存到本机（localStorage），用于报价单计算。</p>
+    <div id="settings-form"></div>
+    <div class="quote-btns">
+      <button class="btn" id="btn-reset-prices">恢复默认价格</button>
+      <button class="btn" id="btn-reset-all">🗑️ 清除全部数据</button>
+    </div>
+  </div>
+</div>
+
+<!-- 手机打开弹窗（动态二维码） -->
+<div class="modal" id="phone-modal" hidden>
+  <div class="modal-body">
+    <div class="modal-header">
+      <h3>📱 手机打开</h3>
+      <button class="icon-btn" id="btn-close-phone">✕</button>
+    </div>
+    <div id="phone-qr" style="background:#fff;border-radius:10px;padding:12px;text-align:center"></div>
+    <p class="modal-hint" id="phone-url" style="font-size:13px;margin-top:10px"></p>
+    <p class="modal-hint">① 手机连同一 WiFi → ② 用相机/微信扫上方二维码 → ③ 浏览器菜单「添加到主屏幕」，以后点图标直接进，无需再输地址</p>
+  </div>
+</div>
+
+<!-- 导出预览弹窗 -->
+<div class="modal" id="export-modal" hidden>
+  <div class="modal-body">
+    <div class="modal-header">
+      <h3 id="export-title">导出图片</h3>
+      <button class="icon-btn" id="btn-close-modal">✕</button>
+    </div>
+    <img id="export-img" alt="导出预览">
+    <div class="modal-actions">
+      <button class="btn primary" id="btn-download">⬇️ 下载图片</button>
+    </div>
+    <p class="modal-hint">手机浏览器如无法下载，可长按上方图片保存到相册。</p>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="lib/three.min.js"></script>
+<script src="lib/OrbitControls.js"></script>
+<script src="lib/qrcode.min.js"></script>
+<script src="js/library.js?v=3"></script>
+<script src="js/models.js?v=3"></script>
+<script src="js/scene.js?v=3"></script>
+<script src="js/drawing.js?v=3"></script>
+<script src="js/quote.js?v=3"></script>
+<script src="js/export.js?v=3"></script>
+<script src="js/main.js?v=3"></script>
+</body>
+</html>

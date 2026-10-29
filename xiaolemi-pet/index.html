@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>xiaolemi</title>
+<style>
+  html, body { margin: 0; padding: 0; background: transparent; overflow: hidden; }
+  /* 固定画布显示尺寸,防止窗口被内容撑大 */
+  #c { display: block; width: 173px; height: 187px; }
+  /* 悬停提示 */
+  #tip {
+    position: fixed; top: 0; left: 0; right: 0;
+    background: rgba(30,35,48,.92); color: #ffd9e8; font-size: 11px;
+    font-family: "Microsoft YaHei", sans-serif; padding: 3px 8px;
+    display: none; pointer-events: none; text-align: center;
+    border-radius: 0 0 8px 8px;
+  }
+  /* 右键菜单 */
+  #menu {
+    position: fixed; top: 0; right: 0; display: none;
+    background: #1e2330; border: 1px solid #2a3040; border-radius: 8px;
+    padding: 6px; z-index: 10;
+  }
+  #menu button {
+    display: block; width: 100%; background: transparent; border: none;
+    color: #e8eaf0; font-size: 12px; font-family: "Microsoft YaHei", sans-serif;
+    padding: 5px 14px; cursor: pointer; text-align: left; border-radius: 5px;
+  }
+  #menu button:hover { background: #2f6fed; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="tip"></div>
+<div id="menu">
+  <button id="mPlus">放大 +</button>
+  <button id="mMinus">缩小 −</button>
+  <button id="mQuit">退出</button>
+</div>
+<script>
+const params = new URLSearchParams(location.search);
+const petDir = (params.get('pet') || '').replace(/\\/g, '/');
+const CW = 192, CH = 208;
+let SCALE = 0.9;              // 起始尺寸,可用右键菜单实时调
+const canvas = document.getElementById('c');
+const tip = document.getElementById('tip');
+const menu = document.getElementById('menu');
+
+function applySize() {
+  const w = Math.round(CW * SCALE), h = Math.round(CH * SCALE);
+  canvas.style.width = w + 'px';
+  canvas.style.height = h + 'px';
+  canvas.width = Math.round(w * devicePixelRatio);
+  canvas.height = Math.round(h * devicePixelRatio);
+  ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+  draw();
+  if (window.petApi) window.petApi.resize(w, h);
+}
+
+// 右键菜单:放大 / 缩小 / 退出
+document.getElementById('mPlus').addEventListener('click', (e) => {
+  e.stopPropagation();
+  SCALE = Math.min(4, SCALE * 1.15);
+  applySize();
+});
+document.getElementById('mMinus').addEventListener('click', (e) => {
+  e.stopPropagation();
+  SCALE = Math.max(0.4, SCALE / 1.15);
+  applySize();
+});
+document.getElementById('mQuit').addEventListener('click', (e) => {
+  e.stopPropagation();
+  if (window.petApi) window.petApi.quit();
+});
+
+const ctx = canvas.getContext('2d');
+
+// Codex v1/v2 标准行序
+const ROW = { idle: 0, runRight: 1, runLeft: 2, wave: 3, jump: 4 };
+
+const sheet = new Image();
+sheet.onload = () => { play('idle'); };
+fetch('file:///' + petDir + '/pet.json')
+  .then((r) => r.json())
+  .then((m) => { sheet.src = 'file:///' + petDir + '/' + m.spritesheetPath; })
+  .catch(() => { tip.textContent = '找不到宠物包: ' + petDir; tip.style.display = 'block'; });
+
+let state = 'idle';
+let frame = 0;
+let playUntil = -1;       // 时间戳:一次性动作播到什么时候
+let stateDeadline = -1;   // 状态结束时间
+let lastAdv = 0;
+let walkTimer = null;
+let walkDir = 0;
+let walkEnd = 0;
+
+function play(s, ms = 0) {
+  state = s; frame = 0;
+  stateDeadline = ms ? Date.now() + ms : -1;
+}
+
+function draw() {
+  ctx.clearRect(0, 0, CW * SCALE, CH * SCALE);
+  const row = ROW[state];
+  if (row === undefined) return;
+  try {
+    ctx.drawImage(sheet, frame * CW, row * CH, CW, CH, 0, 0, CW * SCALE, CH * SCALE);
+  } catch (e) { /* 素材未就绪 */ }
+}
+
+function tick(t) {
+  if (sheet.complete && sheet.naturalWidth > 0) {
+    if (t - lastAdv > 140) {
+      lastAdv = t;
+      frame = (frame + 1) % 8;
+      // 一次性动作结束
+      if (stateDeadline > 0 && Date.now() > stateDeadline) {
+        if (state === 'wave' || state === 'jump') play('idle');
+        else if (state === 'runLeft' || state === 'runRight') play('idle');
+        stateDeadline = -1;
+      }
+    }
+    draw();
+    // 散步:移动窗口
+    if ((state === 'runLeft' || state === 'runRight') && Date.now() < walkEnd) {
+      const dx = state === 'runRight' ? 6 : -6;
+      const nx = window.screenX + dx;
+      const maxX = window.screen.availWidth - CW * SCALE;
+      if (nx >= 0 && nx <= maxX) window.moveTo(nx, window.screenY);
+      else { walkEnd = 0; play('idle'); }
+    }
+  }
+  requestAnimationFrame(tick);
+}
+
+// ---- 点击穿透:光标在宠物身体上时恢复交互,透明处穿透 ----
+let interactive = false;
+function bodyHit(x, y) {
+  try {
+    const dpr = devicePixelRatio;
+    const px = ctx.getImageData(Math.round(x * dpr), Math.round(y * dpr), 1, 1);
+    return px.data[3] > 10;
+  } catch (e) { return false; }
+}
+document.addEventListener('mousemove', (e) => {
+  const on = bodyHit(e.offsetX, e.offsetY);
+  if (on !== interactive) {
+    interactive = on;
+    if (window.petApi) window.petApi.setInteractive(on);
+  }
+});
+document.addEventListener('mouseleave', () => {
+  if (interactive) {
+    interactive = false;
+    if (window.petApi) window.petApi.setInteractive(false);
+  }
+});
+
+// ---- 互动 ----
+let downPos = null;
+canvas.addEventListener('mousedown', (e) => {
+  downPos = { mx: e.screenX, my: e.screenY, wx: window.screenX, wy: window.screenY };
+});
+canvas.addEventListener('mousemove', (e) => {
+  if (!downPos) return;
+  const dx = e.screenX - downPos.mx;
+  if (Math.abs(dx) < 4 && Math.abs(e.screenY - downPos.my) < 4) return;
+  window.moveTo(downPos.wx + dx, downPos.wy + (e.screenY - downPos.my));
+  if (state === 'idle') play(dx > 0 ? 'runRight' : 'runLeft', 300);
+});
+canvas.addEventListener('mouseup', () => {
+  downPos = null;
+  if (state === 'runLeft' || state === 'runRight') play('idle');
+});
+canvas.addEventListener('contextmenu', (e) => {
+  e.preventDefault();
+  menu.style.display = 'block';
+});
+canvas.addEventListener('click', (e) => {
+  if (menu.style.display === 'block') {
+    menu.style.display = 'none';
+    return;
+  }
+  if (downPos) return;
+  play('wave', 8 * 140);
+  tip.textContent = '嗨~'; tip.style.display = 'block';
+  setTimeout(() => { tip.style.display = 'none'; }, 1200);
+});
+
+// ---- 随机散步 ----
+function scheduleWalk() {
+  walkTimer = setTimeout(() => {
+    if (state === 'idle' && !downPos) {
+      walkDir = Math.random() < 0.5 ? -1 : 1;
+      walkEnd = Date.now() + 1500 + Math.random() * 2500;
+      play(walkDir > 0 ? 'runRight' : 'runLeft', walkEnd - Date.now());
+      setTimeout(scheduleWalk, walkEnd - Date.now() + 200);
+    } else {
+      scheduleWalk();
+    }
+  }, 12000 + Math.random() * 30000);
+}
+scheduleWalk();
+
+requestAnimationFrame(tick);
+</script>
+</body>
+</html>

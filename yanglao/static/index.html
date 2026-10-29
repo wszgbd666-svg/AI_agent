@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>社区养老便民助手</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<div class="app">
+
+  <!-- 左侧:资料库 -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-icon">🏡</div>
+      <div class="brand-name">社区养老便民助手</div>
+      <div class="brand-tag">有据可查 · 大白话 · 能朗读</div>
+    </div>
+
+    <div class="side-block">
+      <div class="side-title">📚 已收录政策文件</div>
+      <ul id="doc-list" class="doc-list">
+        <li class="doc-loading">正在读取资料库…</li>
+      </ul>
+    </div>
+
+    <div class="side-foot">
+      <p>回答只依据左侧已收录文件，每条信息都标注来源；文件里没有的，会直接告诉您"不知道"。</p>
+      <p class="hotline">☎ 政策咨询热线：12345</p>
+    </div>
+  </aside>
+
+  <!-- 右侧:对话区 -->
+  <main class="chat-wrap">
+    <header class="chat-header">
+      <div>
+        <h1>养老政策，问我就行</h1>
+        <p class="sub">用大白话讲清楚，每句话都有文件出处</p>
+      </div>
+      <div class="header-actions">
+        <span id="user-chip" class="pill">👤</span>
+        <button id="region-chip" class="pill pill-btn" title="切换地区">📍 <span id="region-text">选择地区</span></button>
+        <button id="logout-btn" class="icon-btn" title="退出登录">退出</button>
+        <div class="font-ctrl" title="调整字号">
+          <button id="font-down" class="icon-btn">A−</button>
+          <button id="font-up" class="icon-btn">A＋</button>
+        </div>
+        <button id="clear-btn" class="icon-btn" title="清空对话">🗑</button>
+      </div>
+    </header>
+
+    <div id="chat" class="chat">
+      <div class="msg bot welcome">
+        <div class="avatar">🤝</div>
+        <div class="bubble">
+          <p>您好！我是社区养老便民助手。</p>
+          <p>养老金、医保、高龄津贴、失能护理……您想问的养老政策，都可以问我。我只会按资料库里的文件回答，查不到就直说不知道，不乱编。</p>
+          <p class="welcome-hint">👇 也可以点下面一个常见问题试试</p>
+        </div>
+      </div>
+
+      <div id="suggest" class="suggest">
+        <button class="chip">80岁的老人能领什么补贴？</button>
+        <button class="chip">今年居民医保要交多少钱？</button>
+        <button class="chip">养老金今年涨了吗？涨多少？</button>
+        <button class="chip">家里老人失能了，护理费能报销吗？</button>
+        <button class="chip">老人坐公交免费吗？</button>
+        <button class="chip">经济困难的老人能申请哪些补助？</button>
+      </div>
+    </div>
+
+    <footer class="input-bar">
+      <textarea id="input" rows="1" placeholder="输入您想了解的养老问题，Ctrl+Enter 发送…"></textarea>
+      <button id="send" class="send-btn">发送</button>
+    </footer>
+  </main>
+</div>
+
+<!-- 登录 -->
+<div id="auth-screen" class="overlay hidden">
+  <div id="auth-login" class="auth-card">
+    <div class="brand-icon">🏡</div>
+    <div class="brand-name">社区养老便民助手</div>
+    <p class="auth-sub">登录后才能提问，您的地区设置会跟着账号走</p>
+
+    <form id="form-login" class="auth-form">
+      <input id="login-username" placeholder="用户名" autocomplete="username">
+      <input id="login-password" type="password" placeholder="密码" autocomplete="current-password">
+      <div id="login-error" class="auth-error"></div>
+      <button type="submit" class="auth-btn">登 录</button>
+    </form>
+
+    <button id="guest-btn" class="guest-btn">不用注册，直接使用</button>
+    <div class="auth-switch">还没有账号？<a id="goto-register" href="javascript:void(0)">去注册</a></div>
+    <div id="auth-locate" class="auth-locate"></div>
+  </div>
+
+  <!-- 注册 -->
+  <div id="auth-register" class="auth-card hidden">
+    <div class="brand-icon">🏡</div>
+    <div class="brand-name">注册一个账号</div>
+    <p class="auth-sub">注册后就能提问，地区以后随时能改</p>
+
+    <form id="form-register" class="auth-form">
+      <input id="reg-username" placeholder="用户名（2~20字，如手机号）" autocomplete="username">
+      <input id="reg-phone" placeholder="手机号（选填）" autocomplete="tel">
+      <input id="reg-password" type="password" placeholder="密码（至少6位）" autocomplete="new-password">
+      <input id="reg-password2" type="password" placeholder="再输一遍密码" autocomplete="new-password">
+      <input id="reg-region" placeholder="所在地区（选填，可先不填）" list="region-list">
+      <div id="reg-error" class="auth-error"></div>
+      <button type="submit" class="auth-btn">注 册</button>
+    </form>
+
+    <div class="auth-switch">已有账号？<a id="goto-login" href="javascript:void(0)">返回登录</a></div>
+  </div>
+</div>
+
+<!-- 地区选择 -->
+<div id="region-modal" class="overlay hidden">
+  <div class="modal-card">
+    <h3>选择您所在的地区</h3>
+    <p class="modal-sub">选好后，回答会优先用您当地的政策文件</p>
+    <div id="region-detect" class="region-detect"></div>
+    <input id="region-input" placeholder="输入或搜索地区，如：湖北省武汉市" list="region-list">
+    <datalist id="region-list"></datalist>
+    <div class="modal-actions">
+      <button id="region-cancel" class="icon-btn">取消</button>
+      <button id="region-save" class="send-btn">保存</button>
+    </div>
+  </div>
+</div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

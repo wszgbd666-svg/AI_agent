@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0f1115">
+  <title>Partner</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div id="app">
+    <header>
+      <div class="title">
+        <img src="/static/avatar.png" class="avatar" alt="Partner">
+        <div>
+          <h1>Partner</h1>
+          <div class="sub">你的私人智能助手</div>
+        </div>
+      </div>
+      <div class="btns">
+        <button id="clearBtn" title="新对话">🧹</button>
+        <button id="histBtn" title="聊天记录">💬</button>
+        <button id="taskBtn" title="后台任务">⏳</button>
+        <button id="memBtn" title="记忆">📚</button>
+      </div>
+    </header>
+    <div id="errBar" hidden></div>
+    <main id="chat">
+      <div id="chips">
+        <button class="chip">你记得我什么?</button>
+        <button class="chip">看下 partner 目录里有什么?</button>
+        <button class="chip">帮我在 partner 里建一个 hello.txt,内容写你好</button>
+      </div>
+    </main>
+    <div id="status" hidden></div>
+    <footer>
+      <input id="input" placeholder="在这里输入,和 Partner 对话…" autocomplete="off">
+      <button id="micBtn" title="语音输入">🎤</button>
+      <button id="imgBtn" title="发图片给 Partner 看">🖼</button>
+      <button id="send">发送</button>
+    </footer>
+    <input id="filePicker" type="file" accept="image/*" hidden>
+  </div>
+  <div id="memPanel" class="panel" hidden>
+    <div class="panel-head">
+      <div class="tabs">
+        <button data-scope="all" class="active">全部</button>
+        <button data-scope="public">公有</button>
+        <button data-scope="private">私有</button>
+        <button data-scope="perm">权限</button>
+      </div>
+      <button id="memClose">返回对话</button>
+    </div>
+    <ul id="memList"></ul>
+    <div id="permSection" hidden>
+      <div class="perm-add">
+        <select id="permTarget">
+          <option value="path">写文件路径</option>
+          <option value="command">命令包含</option>
+        </select>
+        <input id="permValue" type="text" placeholder="如 D:/notes 或 git status">
+        <select id="permAction">
+          <option value="allow">免确认</option>
+          <option value="deny">禁止</option>
+        </select>
+        <button id="permAdd">＋加规则</button>
+      </div>
+      <ul id="permList"></ul>
+      <div class="perm-hint">规则说明:匹配"写文件路径"(前缀)或"命令包含"(子串)。禁止优先于免确认,都没匹配则照常弹确认。</div>
+    </div>
+  </div>
+  <div id="histPanel" class="panel" hidden>
+    <div class="panel-head">
+      <div class="tabs"><span style="color:var(--muted);font-size:14px;">聊天记录</span></div>
+      <button id="histClose">返回对话</button>
+    </div>
+    <ul id="histList"></ul>
+  </div>
+  <div id="taskPanel" class="panel" hidden>
+    <div class="panel-head">
+      <div class="tabs"><span style="color:var(--muted);font-size:14px;">蓝蓝的后台任务</span></div>
+      <div>
+        <button id="newTaskBtn">＋新建</button>
+        <button id="newSchedBtn">＋定时</button>
+        <button id="taskClose">返回对话</button>
+      </div>
+    </div>
+    <ul id="taskList"></ul>
+    <div class="sec-title">⏰ 定时任务</div>
+    <ul id="schedList"></ul>
+    <div class="sec-title">🕵 最近行动记录</div>
+    <ul id="auditList"></ul>
+  </div>
+  <div id="taskModal" hidden>
+    <div class="modal-box">
+      <div class="modal-head">
+        <h2>交给蓝蓝后台执行</h2>
+        <button id="taskX" class="x">✕</button>
+      </div>
+      <textarea id="taskMsg" placeholder="比如:统计 D 盘有多少个文件,按类型分类"></textarea>
+      <label class="chk"><input type="checkbox" id="taskAllowWrite"> 允许她写文件和跑命令(不勾选则只读)</label>
+      <div class="modal-actions">
+        <button id="taskCancel">取消</button>
+        <button id="taskStart" class="primary">开始</button>
+      </div>
+    </div>
+  </div>
+  <div id="schedModal" hidden>
+    <div class="modal-box">
+      <div class="modal-head">
+        <h2>新建定时任务</h2>
+        <button id="schedX" class="x">✕</button>
+      </div>
+      <textarea id="schedMsg" placeholder="比如:每天提醒我看一下 D 盘剩余空间"></textarea>
+      <div class="sched-row">
+        <select id="schedKind">
+          <option value="daily">每天</option>
+          <option value="interval">每隔</option>
+        </select>
+        <input id="schedAt" type="text" placeholder="09:00">
+        <span id="schedUnit">点</span>
+      </div>
+      <label class="chk"><input type="checkbox" id="schedAllowWrite"> 允许她写文件和跑命令</label>
+      <div class="modal-actions">
+        <button id="schedCancel">取消</button>
+        <button id="schedStart" class="primary">保存</button>
+      </div>
+    </div>
+  </div>
+  <div id="taskDetailModal" hidden>
+    <div class="modal-box">
+      <div class="modal-head">
+        <h2 id="taskDetailTitle">任务详情</h2>
+        <button id="taskDetailX" class="x">✕</button>
+      </div>
+      <div id="taskDetailResult" class="t-detail"></div>
+    </div>
+  </div>
+  <script src="/static/app.js"></script>
+</body>
+</html>

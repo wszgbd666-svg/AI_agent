@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f1115">
+<title>Partner</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #0f1115; color: #e8eaf0;
+  }
+  /* ---- 服务器设置页 ---- */
+  #setup {
+    height: 100%; display: flex; align-items: center; justify-content: center; padding: 24px;
+  }
+  .box { background: #171a21; border: 1px solid #2a3040; border-radius: 16px;
+    padding: 28px 24px; width: min(340px, 92vw); text-align: center; }
+  .box h1 { font-size: 20px; margin-bottom: 4px; }
+  .box p { color: #8b93a7; font-size: 13px; margin-bottom: 18px; line-height: 1.6; }
+  .box input {
+    width: 100%; background: #232936; border: 1px solid #2a3040; border-radius: 10px;
+    padding: 12px 14px; font-size: 16px; color: #e8eaf0; outline: none; margin-bottom: 12px;
+  }
+  .box button {
+    width: 100%; background: #2f6fed; border: none; border-radius: 10px;
+    padding: 12px; font-size: 15px; color: #fff;
+  }
+  .hint { color: #8b93a7; font-size: 12px; margin-top: 12px; line-height: 1.6; }
+  /* ---- 主界面:内嵌 Partner ---- */
+  #main { position: fixed; inset: 0; display: none; }
+  #frame { width: 100%; height: 100%; border: none; }
+  #gear {
+    position: fixed; right: 8px; bottom: calc(74px + env(safe-area-inset-bottom));
+    width: 30px; height: 30px; border-radius: 50%;
+    background: rgba(30,35,48,.85); color: #8b93a7; border: 1px solid #2a3040;
+    font-size: 14px; z-index: 50;
+  }
+</style>
+</head>
+<body>
+  <div id="setup">
+    <div class="box">
+      <h1>Partner</h1>
+      <p>输入电脑上 Partner 服务的地址<br>(电脑和手机需连同一个 WiFi)</p>
+      <input id="url" type="text" placeholder="http://10.219.152.148:8000" autocomplete="off">
+      <button id="go">连接</button>
+      <div class="hint">默认是你电脑的局域网地址。<br>连不上时在电脑命令行运行 ipconfig 查看 IPv4 地址。</div>
+    </div>
+  </div>
+
+  <div id="main">
+    <iframe id="frame" title="Partner"></iframe>
+  </div>
+  <button id="gear" title="设置服务器">⚙</button>
+
+<script>
+const KEY = 'partner_server_url';
+const DEFAULT = 'http://10.219.152.148:8000';
+const setupEl = document.getElementById('setup');
+const mainEl = document.getElementById('main');
+const frame = document.getElementById('frame');
+const urlInput = document.getElementById('url');
+const goBtn = document.getElementById('go');
+const gear = document.getElementById('gear');
+
+function saved() {
+  return localStorage.getItem(KEY) || '';
+}
+
+function connect() {
+  const raw = urlInput.value.trim();
+  if (!raw) { urlInput.value = DEFAULT; return; }
+  const u = raw.includes('://') ? raw : 'http://' + raw;
+  localStorage.setItem(KEY, u);
+  frame.src = u;
+  setupEl.style.display = 'none';
+  mainEl.style.display = 'block';
+}
+
+function showSetup() {
+  urlInput.value = saved() || DEFAULT;
+  mainEl.style.display = 'none';
+  setupEl.style.display = 'flex';
+}
+
+goBtn.addEventListener('click', connect);
+urlInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.isComposing) connect();
+});
+gear.addEventListener('click', showSetup);
+
+// 启动:有保存地址直接进,否则显示设置页
+(function init() {
+  const u = saved();
+  if (u) {
+    urlInput.value = u;
+    connect();
+  } else {
+    urlInput.value = DEFAULT;
+    showSetup();
+  }
+})();
+</script>
+</body>
+</html>

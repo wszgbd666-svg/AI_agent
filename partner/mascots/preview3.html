@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Partner 形象 · 鲸鱼娘官方原画版</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #0f1115; color: #e8eaf0; padding: 32px 16px 48px;
+  }
+  h1 { text-align: center; font-size: 20px; margin-bottom: 6px; }
+  .sub { text-align: center; color: #8b93a7; font-size: 13px; margin-bottom: 24px; }
+  .grid {
+    display: grid; gap: 16px;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    max-width: 900px; margin: 0 auto 32px;
+  }
+  .card {
+    background: #171a21; border: 1px solid #2a3040; border-radius: 16px;
+    padding: 16px; display: flex; flex-direction: column; align-items: center; gap: 8px;
+  }
+  .card .stage {
+    width: 200px; height: 200px; border-radius: 50%;
+    background: radial-gradient(circle at 50% 42%, #22304d, #171a21 72%);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .card .stage img { max-width: 88%; max-height: 88%; }
+  .tag { font-size: 12px; color: #8b93a7; }
+  .vs { text-align: center; color: #8b93a7; font-size: 13px; margin-bottom: 24px; }
+  .old { opacity: .55; }
+  .row { display: flex; gap: 16px; align-items: center; justify-content: center; margin-bottom: 16px; }
+  .small {
+    width: 38px; height: 38px; border-radius: 50%;
+    background: #171a21; border: 1px solid #2a3040; overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .small img { max-width: 100%; max-height: 100%; }
+</style>
+</head>
+<body>
+<h1>Partner 形象 · 鲸鱼娘官方原画</h1>
+<div class="sub">直接从 dsh-pet 官方动画素材截帧 · 专业画师原画 · 双击打开即看</div>
+
+<div class="grid">
+  <div class="card">
+    <div class="stage"><img src="whale_idle1.png" alt="姿态1"></div>
+    <div class="tag">姿态 1</div>
+  </div>
+  <div class="card">
+    <div class="stage"><img src="whale_idle2.png" alt="姿态2"></div>
+    <div class="tag">姿态 2(已设为头像)</div>
+  </div>
+  <div class="card">
+    <div class="stage"><img src="whale_idle3.png" alt="姿态3"></div>
+    <div class="tag">姿态 3</div>
+  </div>
+</div>
+
+<div class="row">
+  <span style="font-size:13px;color:#8b93a7;">标题栏小头像:</span>
+  <div class="small"><img src="../static/avatar.png" alt="新头像"></div>
+  <span style="font-size:13px;color:#8b93a7;">旧手绘版对比:</span>
+  <div class="small old"><img src="../static/avatar.svg" alt="旧头像"></div>
+</div>
+
+<div class="vs">不满意就换个姿态,或者我换个动画截(女仆舞、发呆、比心…)</div>
+</body>
+</html>

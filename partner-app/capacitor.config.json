@@ -1,0 +1,11 @@
+{
+  "appId": "com.wsz.partner",
+  "appName": "Partner",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "http"
+  },
+  "android": {
+    "allowMixedContent": true
+  }
+}

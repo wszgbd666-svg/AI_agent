@@ -1,0 +1,55 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# 密钥与账号数据
+.env
+*.keystore
+keystore.properties
+data.db
+partner/data/
+partner/memory/private/
+partner/uploads/
+
+# 个人运维文档（含密钥）与本地脚本（含访问口令）
+企业微信配置手册.md
+start-partner-server.bat
+
+# 构建产物与二进制（不提交）
+*.apk
+*.idsig
+*.zip
+node_modules/
+doorwin/android*/build/
+doorwin/android_test*/
+doorwin/tmp_qr/
+partner-app/node_modules/
+partner-app/android/build/
+partner-app/android/app/build/
+partner-app/android/.gradle/
+partner-app/android/local.properties
+partner-app/android/capacitor-cordova-android-plugins/
+
+# AI 生成素材与体积大的中间产物
+.volc_key
+duanju/素材/
+duanju/tools/ffbin/
+duanju/tools/ref-frames/
+duanju/tools/qc-shots/
+duanju/tools/ref_*.mp4
+duanju/tools/qc-frame*.png
+
+# 本地临时文件
+.tmp_docx/
+.tmp_fix/
+Desktop/
+.claude/
+_build.log
+_partner.log
+_vision_test.png
+tmp_w.json
+tmp_w.out
+ollama-gguf/
+chroma_db/

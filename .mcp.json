@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "vision": {
+      "command": "D:/DevTools/Python/Miniconda3/envs/ai/python.exe",
+      "args": ["D:/AI_agent/mcp-vision/vision_server.py"]
+    }
+  }
+}
